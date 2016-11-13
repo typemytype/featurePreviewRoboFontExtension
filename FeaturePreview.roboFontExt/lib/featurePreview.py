@@ -18,7 +18,7 @@ class FeatureTester(BaseWindowController):
 
     def __init__(self, font):
         if font is None:
-            print "A open UFO is needed"
+            print "An open UFO is needed"
             return
         roboFabFont = font
         font = font.naked()
