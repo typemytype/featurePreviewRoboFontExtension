@@ -32,13 +32,13 @@
 	<key>timeStamp</key>
 	<real>1331630446.5935349</real>
 	<key>version</key>
-	<string>1.1</string>
+	<string>1.2</string>
 	<key>com.robofontmechanic.Mechanic</key>
 	<dict>
 		<key>repository</key>
 		<string>typemytype/featurePreviewRoboFontExtension</string>
 		<key>summary</key>
-		<string>Preview features, previously know as Area51.</string>
+		<string>Preview OpenType features.</string>
 	</dict>
 </dict>
 </plist>

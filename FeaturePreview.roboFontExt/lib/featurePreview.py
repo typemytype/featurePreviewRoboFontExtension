@@ -45,12 +45,12 @@ class FeatureTester(BaseWindowController):
         self.w.previewTabs[0].lineView = self.glyphLineView = GlyphLineView((0, 0, -0, -0), showPointSizePlacard=True)
         # records
         columnDescriptions = [
-            dict(title="Name", width=100),
+            dict(title="Name", width=100, minWidth=100, maxWidth=300),
             dict(title="XP", width=50),
             dict(title="YP", width=50),
             dict(title="XA", width=50),
             dict(title="YA", width=50),
-            dict(title="Alternates", width=100)
+            dict(title="Alternates", width=100, minWidth=100, maxWidth=300)
         ]
         self.w.previewTabs[1].recordsList = self.glyphRecordsList = List((0, 0, -0, -0), [], columnDescriptions=columnDescriptions,
                 showColumnTitles=True, drawVerticalLines=True, drawFocusRing=False)
