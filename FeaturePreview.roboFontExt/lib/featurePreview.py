@@ -67,6 +67,9 @@ class FeatureTester(BaseWindowController):
         if document is not None:
             document.addWindowController_(self.w.getNSWindowController())
 
+        # Somehow being attached to an NSDocument makes the vanilla.Window autosaveName argument not work.
+        self.w._window.setFrameAutosaveName_("featurePreviewRoboFontExtension")
+
         self.w.open()
 
         self.updateFeatureFontCallback(None)
