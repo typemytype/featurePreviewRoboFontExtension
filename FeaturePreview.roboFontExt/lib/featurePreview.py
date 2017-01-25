@@ -12,7 +12,19 @@ from defconAppKit.controls.glyphSequenceEditText import GlyphSequenceEditText
 from defconAppKit.controls.glyphLineView import GlyphLineView
 
 from fontCompiler.compiler import FontCompilerOptions
-from fontCompiler.emptyCompiler import EmptyOTFCompiler
+from fontCompiler.emptyCompiler import EmptyOTFCompiler as FontCompilerEmptyOTFCompiler
+from fontCompiler.tools.compileTools import EmbeddedFDK
+
+
+# fix a temp issue in fontCompiler
+# current RF 1.8
+# remove this when 2.0 is released
+class EmptyOTFCompiler(FontCompilerEmptyOTFCompiler):
+
+    def compile(self, font, options):
+        # always use the embedded FDK for this
+        options.fdk = EmbeddedFDK()
+        super(EmptyOTFCompiler, self).compile(font, options)
 
 
 class FeatureTester(BaseWindowController):
