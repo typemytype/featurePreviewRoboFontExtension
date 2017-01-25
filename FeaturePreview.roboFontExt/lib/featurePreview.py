@@ -12,19 +12,8 @@ from defconAppKit.controls.glyphSequenceEditText import GlyphSequenceEditText
 from defconAppKit.controls.glyphLineView import GlyphLineView
 
 from fontCompiler.compiler import FontCompilerOptions
-from fontCompiler.emptyCompiler import EmptyOTFCompiler as FontCompilerEmptyOTFCompiler
+from fontCompiler.emptyCompiler import EmptyOTFCompiler
 from fontCompiler.tools.compileTools import EmbeddedFDK
-
-
-# fix a temp issue in fontCompiler
-# current RF 1.8
-# remove this when 2.0 is released
-class EmptyOTFCompiler(FontCompilerEmptyOTFCompiler):
-
-    def compile(self, font, options):
-        # always use the embedded FDK for this
-        options.fdk = EmbeddedFDK()
-        super(EmptyOTFCompiler, self).compile(font, options)
 
 
 class FeatureTester(BaseWindowController):
@@ -127,6 +116,7 @@ class FeatureTester(BaseWindowController):
         self.font.info.postscriptNominalWidthX = None
         options = FontCompilerOptions()
         options.outputPath = path
+        options.fdk = EmbeddedFDK()
         reports = compiler.compile(self.font, options)
         # load the compiled font
         if os.path.exists(path) and reports["makeotf"] is not None and "makeotfexe [FATAL]" not in reports["makeotf"]:
