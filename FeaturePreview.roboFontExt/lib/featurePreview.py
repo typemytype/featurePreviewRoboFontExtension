@@ -194,16 +194,18 @@ class FeatureTester(BaseWindowController):
             # process
             glyphRecords = self.featureFont.process(glyphNames, script=script, langSys=language, rightToLeft=rightToLeft, case=case)
             # set the UFO's glyphs into the records
-            finalRecords = []
+            for glyphRecord in glyphRecords:
+                print(glyphRecord.glyph, glyphRecord.advanceWidth)
+                
             for glyphRecord in glyphRecords:
                 if glyphRecord.glyphName not in self.font:
                     continue
                 glyphRecord.glyph = self.font[glyphRecord.glyphName]
-                finalRecords.append(glyphRecord)
+                # glyphRecord.advanceWidth = glyphRecord.glyph.width
             # set the records
-            self.glyphLineView.set(finalRecords)
-            records = [dict(Name=record.glyph.name, XP=record.xPlacement, YP=record.yPlacement, XA=record.xAdvance, YA=record.yAdvance, Alternates=", ".join(record.alternates)) for record in finalRecords]
-            self.glyphRecordsList.set(records)
+            self.glyphLineView.set(glyphRecords)
+            recordData = [dict(Name=record.glyph.name, XP=record.xPlacement, YP=record.yPlacement, XA=record.xAdvance, YA=record.yAdvance, Alternates=", ".join(record.alternates)) for record in glyphRecords]
+            self.glyphRecordsList.set(recordData)
 
     def updateGlyphLineViewViewControls(self):
         if self.featureFont is not None:
