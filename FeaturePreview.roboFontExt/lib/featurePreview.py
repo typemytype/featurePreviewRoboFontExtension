@@ -195,9 +195,6 @@ class FeatureTester(BaseWindowController):
             glyphRecords = self.featureFont.process(glyphNames, script=script, langSys=language, rightToLeft=rightToLeft, case=case)
             # set the UFO's glyphs into the records
             for glyphRecord in glyphRecords:
-                print(glyphRecord.glyph, glyphRecord.advanceWidth)
-                
-            for glyphRecord in glyphRecords:
                 if glyphRecord.glyphName not in self.font:
                     continue
                 glyphRecord.glyph = self.font[glyphRecord.glyphName]
