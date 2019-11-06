@@ -12,6 +12,14 @@
 			<key>shortKey</key>
 			<string></string>
 		</dict>
+		<dict>
+			<key>path</key>
+			<string>featureBinaryPreview.py</string>
+			<key>preferredName</key>
+			<string>Binary Font Feature Preview</string>
+			<key>shortKey</key>
+			<string></string>
+		</dict>
 	</array>
 	<key>developer</key>
 	<string>TypeMyType </string>
@@ -32,7 +40,7 @@
 	<key>timeStamp</key>
 	<real>1482146721.0</real>
 	<key>version</key>
-	<string>1.2.3</string>
+	<string>1.2.4</string>
 	<key>com.robofontmechanic.Mechanic</key>
 	<dict>
 		<key>repository</key>
