@@ -49,21 +49,35 @@ class FeatureFont(object):
 
     def __init__(self, font):
         self.font = font
-        self.buildBinaryFont()        
+        self.buildCMAP()
+        self.buildBinaryFont()
         self.loadFeatures()
         self.loadStylisticSetNames()
         self.loadAlternates()
         self.featureStates = dict()
+        self.fallbackGlyph = ".notdef"
+
+    def buildCMAP(self):
+        font = self.font
+        self.cmap = {uni: names[0] for uni, names in font.unicodeData.items()}
+        # add all glyphs, even the un encoded ones at a high unicode...
+        # see https://github.com/harfbuzz/uharfbuzz/issues/22
+        unicodeOffset = 0x110000
+        unencodedCount = 0
+        for glyph in font:
+            if not glyph.unicodes:
+                self.cmap[unicodeOffset + unencodedCount] = glyph.name
+                unencodedCount += 1
+        self.reverseCMAP = {name: uni for uni, name in self.cmap.items()}
 
     def buildBinaryFont(self):
         font = self.font
-        cmap = {uni: names[0] for uni, names in font.unicodeData.items()}
-        glyphOrder = sorted(set(font.glyphOrder) | set(cmap.values()))
+        glyphOrder = sorted(set(font.glyphOrder) | set(self.cmap.values()))
 
         ff = FontBuilder(font.info.unitsPerEm, isTTF=True)
         ff.setupGlyphOrder(glyphOrder)
-        if cmap:
-            ff.setupCharacterMap(cmap)
+        if self.cmap:
+            ff.setupCharacterMap(self.cmap)
         ff.addOpenTypeFeatures(self._getFeatureText(font))
         ff.setupHorizontalMetrics({gn: (int(round(font[gn].width)), int(round(font[gn].height))) for gn in glyphOrder})
         ff.setupHorizontalHeader(ascent=int(round(font.info.ascender)), descent=int(round(font.info.descender)))
@@ -71,7 +85,7 @@ class FeatureFont(object):
         ff.save(data)
         self.source = ff.font
         self._data = data.getvalue()
-        
+
     def loadFeatures(self):
         ft = self.source
         self.gpos = None
@@ -158,13 +172,27 @@ class FeatureFont(object):
                                         self.alternates[key] = set()
                                     self.alternates[key] |= set(values)
 
-    def process(self, text, script="latn", langSys=None, rightToLeft=None, case="unchanged", logger=None):
-        if not text:
+    def process(self, stringOrGlyphList, script="latn", langSys=None, rightToLeft=None, case="unchanged", logger=None):
+        if not stringOrGlyphList:
             return []
-        if case == "upper":
-            text = text.upper()
-        elif case == "lower":
-            text = text.lower()
+        if isinstance(stringOrGlyphList, str):
+            stringOrGlyphList = self.stringToGlyphNames(stringOrGlyphList)
+        if case != "unchanged":
+            changedStringOrGlyphList = []
+            for glyphName in stringOrGlyphList:
+                if glyphName in self.reverseCMAP:
+                    uni = self.reverseCMAP[glyphName]
+                    try:
+                        char = chr(uni)
+                    except Exception:
+                        char = None
+                    if char is not None:
+                        uni = ord(getattr(char, case)())
+                        if uni in self.cmap:
+                            glyphName = self.cmap[uni]
+
+                changedStringOrGlyphList.append(glyphName)
+            stringOrGlyphList = convertCase(case, stringOrGlyphList, self.cmap, self.fallbackGlyph)
 
         for tag in ["init", "medi", "fina"]:
             if tag in self.featureStates and not self.featureStates[tag]:
@@ -180,7 +208,7 @@ class FeatureFont(object):
                 buf.direction = "rtl"
             else:
                 buf.direction = "ltr"
-        buf.add_codepoints([ord(c) for c in text])
+        buf.add_codepoints([self.reverseCMAP[c] for c in stringOrGlyphList if c in self.reverseCMAP])
         buf.guess_segment_properties()
 
         face = hb.Face(self._data)
@@ -204,6 +232,17 @@ class FeatureFont(object):
                 alternates=sorted(self.alternates.get(glyphName, []))
             ))
         return glyphRecords
+
+    def stringToGlyphNames(self, string):
+        glyphNames = []
+        for c in string:
+            c = ord(c)
+            v = chr(c)
+            if v in self.cmap:
+                glyphNames.append(self.cmap[v])
+            elif self.fallbackGlyph is not None:
+                glyphNames.append(self.fallbackGlyph)
+        return glyphNames
 
     def setFeatureState(self, featureTag, state):
         self.featureStates[featureTag] = state
@@ -284,9 +323,9 @@ class FeatureFont(object):
 
 
 class FeatureTester(BaseWindowController):
-    
+
     featureFontClass = FeatureFont
-        
+
     def __init__(self, font):
         if font is None:
             print("An open UFO is needed")
@@ -304,7 +343,7 @@ class FeatureTester(BaseWindowController):
         previewGroup = Group((0, 0, -0, -0))
         self.glyphLineInputPosSize = (10, 10, -85, 22)
         self.glyphLineInputPosSizeWithSpinner = (10, 10, -106, 22)
-        previewGroup.glyphNameInput = self.glyphLineInput = EditText(self.glyphLineInputPosSize, callback=self.glyphLineViewInputCallback)
+        previewGroup.glyphNameInput = self.glyphLineInput = GlyphSequenceEditText(self.glyphLineInputPosSize, self.font, callback=self.glyphLineViewInputCallback)
         previewGroup.progressSpinner = self.glyphLineProgressSpinner = ProgressSpinner((-98, 13, 16, 16), sizeStyle="small")
         previewGroup.updateButton = self.glyphLineUpdateButton = Button((-75, 11, -10, 20), "Update", callback=self.updateFeatureFontCallback)
 
@@ -403,7 +442,7 @@ class FeatureTester(BaseWindowController):
         # set the direction
         self.glyphLineView.setRightToLeft(settings["rightToLeft"])
         # get the typed glyphs
-        text = str(self.glyphLineInput.get())
+        glyphNames = [glyph.name for glyph in self.glyphLineInput.get()]
         # set into the view
         case = settings["case"]
         if self.featureFont is None:
@@ -420,7 +459,7 @@ class FeatureTester(BaseWindowController):
             for tag, state in settings["gpos"].items():
                 self.featureFont.gpos.setFeatureState(str(tag), bool(state))
             # process
-            glyphRecords = self.featureFont.process(text, script=script, langSys=language, rightToLeft=rightToLeft, case=case)
+            glyphRecords = self.featureFont.process(glyphNames, script=script, langSys=language, rightToLeft=rightToLeft, case=case)
             # set the records
             self.glyphLineView.set(glyphRecords)
             recordData = [dict(Name=record.glyph.name, XP=record.xPlacement, YP=record.yPlacement, XA=record.xAdvance, YA=record.yAdvance, Alternates=", ".join(record.alternates)) for record in glyphRecords]
