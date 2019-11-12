@@ -294,7 +294,6 @@ class FeatureFont(object):
             writer = KernFeatureWriter()
             writer.write(font, feaFile)
             # clean up
-            feaFile.statements.pop(0)
             for script in languageSystems:
                 feaFile.statements.pop(0)
 
