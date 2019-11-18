@@ -288,23 +288,30 @@ class FeatureFont(object):
             feaParser = FeatureParser(data, set(font.keys()))
             feaFile = feaParser.parse()
             existingLanguageSystems = set([st.script for st in feaFile.statements if isinstance(st, ast.LanguageSystemStatement)])
+            addedStatement = []
             for script in reversed(languageSystems):
                 if script not in existingLanguageSystems:
-                    feaFile.statements.insert(0, ast.LanguageSystemStatement(script=script, language="dflt"))
+                    statement = ast.LanguageSystemStatement(script=script, language="dflt")
+                    addedStatement.append(statement)
+                    feaFile.statements.insert(0, statement)
             writer = KernFeatureWriter()
             writer.write(font, feaFile)
             # clean up
-            for script in languageSystems:
-                feaFile.statements.pop(0)
-
-            def removeScriptlanguage(feaFile):
-                for statement in list(feaFile.statements):
+            for statement in addedStatement:
+                feaFile.statements.remove(statement)
+            
+            def removeScriptlanguage(block):
+                for statement in list(block.statements):
                     if hasattr(statement, "statements"):
                         removeScriptlanguage(statement)
                     if isinstance(statement, (ast.ScriptStatement, ast.LanguageStatement)):
-                        feaFile.statements.remove(statement)
-            removeScriptlanguage(feaFile)
+                        block.statements.remove(statement)
+            
+            for block in ast.iterFeatureBlocks(feaFile, tag="kern"):
+                removeScriptlanguage(block)
+            
             fea = feaFile.asFea()
+
         return fea
 
     def _skimNameIDs(self, nameIDs, priority):
