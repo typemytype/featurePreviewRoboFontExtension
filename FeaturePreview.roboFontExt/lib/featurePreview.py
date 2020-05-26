@@ -103,7 +103,7 @@ class FeatureFont(object):
                     for langSysRecord in script.LangSysRecord:
                         GPOSLanguageList.add(langSysRecord.LangSysTag)
 
-            self.gpos.wrapValue("getFeatureList", GPOSFeatureTags)
+            self.gpos.wrapValue("getFeatureList", list(sorted(GPOSFeatureTags)))
             self.gpos.wrapValue("getScriptList", GPOSScriptList)
             self.gpos.wrapValue("getLanguageList", GPOSLanguageList)
             self.gpos.getFeatureState = self.getFeatureState
@@ -124,7 +124,7 @@ class FeatureFont(object):
                     for langSysRecord in script.LangSysRecord:
                         GSUBLanguageList.add(langSysRecord.LangSysTag)
 
-            self.gsub.wrapValue("getFeatureList", GSUBFeatureTags)
+            self.gsub.wrapValue("getFeatureList", list(sorted(GSUBFeatureTags)))
             self.gsub.wrapValue("getScriptList", GSUBScriptList)
             self.gsub.wrapValue("getLanguageList", GSUBLanguageList)
             self.gsub.getFeatureState = self.getFeatureState
@@ -299,17 +299,17 @@ class FeatureFont(object):
             # clean up
             for statement in addedStatement:
                 feaFile.statements.remove(statement)
-            
+
             def removeScriptlanguage(block):
                 for statement in list(block.statements):
                     if hasattr(statement, "statements"):
                         removeScriptlanguage(statement)
                     if isinstance(statement, (ast.ScriptStatement, ast.LanguageStatement)):
                         block.statements.remove(statement)
-            
+
             for block in ast.iterFeatureBlocks(feaFile, tag="kern"):
                 removeScriptlanguage(block)
-            
+
             fea = feaFile.asFea()
 
         return fea
