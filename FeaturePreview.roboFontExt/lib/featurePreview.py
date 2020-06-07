@@ -74,7 +74,7 @@ class FeatureFont(object):
         font = self.font
         glyphOrder = sorted(set(font.glyphOrder) | set(self.cmap.values()))
 
-        ff = FontBuilder(font.info.unitsPerEm, isTTF=True)
+        ff = FontBuilder(int(round(font.info.unitsPerEm)), isTTF=True)
         ff.setupGlyphOrder(glyphOrder)
         if self.cmap:
             ff.setupCharacterMap(self.cmap)
