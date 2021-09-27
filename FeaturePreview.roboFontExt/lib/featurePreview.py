@@ -287,13 +287,22 @@ class FeatureFont(object):
             data = io.StringIO(fea)
             feaParser = FeatureParser(data, set(font.keys()))
             feaFile = feaParser.parse()
-            existingLanguageSystems = set([st.script for st in feaFile.statements if isinstance(st, ast.LanguageSystemStatement)])
+            existingLanguageSystems = set()
+            DFLTindex = 0
+            # search for existing language systems
+            # and keep the index of the DFLT if existing
+            for index, st in enumerate(feaFile.statements):
+                if isinstance(st, ast.LanguageSystemStatement):
+                    existingLanguageSystems.add(st.script)
+                    if st.script == "DFLT":
+                        DFLTindex = index + 1
+
             addedStatement = []
             for script in reversed(languageSystems):
                 if script not in existingLanguageSystems:
                     statement = ast.LanguageSystemStatement(script=script, language="dflt")
                     addedStatement.append(statement)
-                    feaFile.statements.insert(0, statement)
+                    feaFile.statements.insert(DFLTindex, statement)
             writer = KernFeatureWriter()
             writer.write(font, feaFile)
             # clean up
