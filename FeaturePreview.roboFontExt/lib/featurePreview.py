@@ -496,5 +496,5 @@ class FeatureTester(BaseWindowController):
         self.glyphLineControls.setFont(self.featureFont)
 
 
-if __name__ is "__main__":
+if __name__ == "__main__":
     FeatureTester(font=CurrentFont())
