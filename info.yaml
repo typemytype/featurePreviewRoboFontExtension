@@ -14,3 +14,4 @@ addToMenu:
 html: false
 requiresVersionMajor: '1'
 requiresVersionMinor: '7'
+# comment!
