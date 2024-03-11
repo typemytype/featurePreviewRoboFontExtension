@@ -1,5 +1,5 @@
 name: FeaturePreview
-developer: 'TypeMyType'
+developer: TypeMyType
 developerURL: http://www.typemytype.com
 launchAtStartUp: false
 mainScript: ''
@@ -11,7 +11,5 @@ addToMenu:
 - path: featureBinaryPreview.py
   preferredName: Binary Font Feature Preview
   shortKey: ''
-html: false
 requiresVersionMajor: '1'
 requiresVersionMinor: '7'
-# comment!
