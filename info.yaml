@@ -3,7 +3,7 @@ developer: TypeMyType
 developerURL: http://www.typemytype.com
 launchAtStartUp: false
 mainScript: ''
-version: 1.2.5
+version: 1.2.6
 addToMenu:
 - path: featurePreview.py
   preferredName: Feature Preview

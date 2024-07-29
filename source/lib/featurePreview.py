@@ -11,6 +11,7 @@ from defconAppKit.controls.glyphLineView import GlyphLineView
 
 from ufo2fdk.makeotfParts import forceAbsoluteIncludesInFeatures, extractFeaturesAndTables
 from ufo2ft.featureWriters.kernFeatureWriter import KernFeatureWriter, ast
+from ufo2ft.util import makeOfficialGlyphOrder
 
 import uharfbuzz as hb
 from fontTools import unicodedata
@@ -304,7 +305,15 @@ class FeatureFont(object):
                     addedStatement.append(statement)
                     feaFile.statements.insert(DFLTindex, statement)
             writer = KernFeatureWriter()
+
+            def _kernFeatureWriterSetOrderedGlyphSet():
+                """Return OrderedDict[glyphName, glyph] sorted by glyphOrder."""
+                glyphOrder = makeOfficialGlyphOrder(font, font.glyphOrder)
+                return {glyphName: font[glyphName] for glyphName in glyphOrder}
+
+            writer.getOrderedGlyphSet = _kernFeatureWriterSetOrderedGlyphSet
             writer.write(font, feaFile)
+
             # clean up
             for statement in addedStatement:
                 feaFile.statements.remove(statement)
@@ -352,7 +361,6 @@ class FeatureTester(BaseWindowController):
 
         topHeight = 40
         left = 160
-
         self.w = Window((700, 400), "Feature Preview", minSize=(300, 300))
 
         previewGroup = Group((0, 0, -0, -0))
@@ -398,6 +406,7 @@ class FeatureTester(BaseWindowController):
         self.w.open()
 
         self.updateFeatureFontCallback(None)
+
 
     def windowClose(self, sender):
         self.destroyFeatureFont()
