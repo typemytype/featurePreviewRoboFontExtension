@@ -193,7 +193,8 @@ class FeatureFont(object):
                             glyphName = self.cmap[uni]
 
                 changedStringOrGlyphList.append(glyphName)
-            stringOrGlyphList = convertCase(case, stringOrGlyphList, self.cmap, self.fallbackGlyph)
+            convertCaseReverseCMAP = {name: [value] for name, value in self.reverseCMAP.items()}
+            stringOrGlyphList = convertCase(case, stringOrGlyphList, self.cmap, convertCaseReverseCMAP, fallbackGlyph=self.fallbackGlyph)
 
         for tag in ["init", "medi", "fina"]:
             if tag in self.featureStates and not self.featureStates[tag]:
